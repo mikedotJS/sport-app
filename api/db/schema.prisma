@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -8,11 +8,69 @@ generator client {
   binaryTargets = "native"
 }
 
-// Define your own datamodels here and run `yarn redwood prisma migrate dev`
-// to create migrations for them and apply to your dev DB.
-// TODO: Please remove the following example:
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model Club {
+  id          Int          @id @default(autoincrement())
+  name        String
+  city        String
+  description String?
+  imageUrl    String?
+  location    Location?    @relation(fields: [locationId], references: [id])
+  activities  Activity[]
+  members     ClubMember[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  locationId Int?
+}
+
+model Location {
+  id        Int    @id @default(autoincrement())
+  address   String
+  latitude  Float
+  longitude Float
+  club      Club[]
+}
+
+model Member {
+  id          Int          @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String       @unique
+  password    String
+  phoneNumber String?
+  clubs       ClubMember[]
+  medicalDocs MedicalDoc[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startTime DateTime
+  endTime   DateTime
+  club      Club?    @relation(fields: [clubId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clubId Int?
+}
+
+model MedicalDoc {
+  id        Int      @id @default(autoincrement())
+  title     String
+  url       String
+  member    Member   @relation(fields: [memberId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberId Int
+}
+
+model ClubMember {
+  id       Int    @id @default(autoincrement())
+  club     Club   @relation(fields: [clubId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id])
+  clubId   Int
+  memberId Int
 }
